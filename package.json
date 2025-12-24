@@ -1,0 +1,10 @@
+{
+  "name": "hostel-peruibe",
+  "version": "1.0.0",
+  "description": "Sistema de reservas para Hostel Casa Peruíbe",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve .",
+    "start": "npx serve ."
+  }
+}
