@@ -73,36 +73,33 @@ function renderRoomCard(q) {
     const status30 = q.status_30_03 || 'disponivel';
     const ocupado29 = status29 === 'ocupado' || status29 === 'confirmada';
     const ocupado30 = status30 === 'ocupado' || status30 === 'confirmada';
-    const ambosOcupados = ocupado29 && ocupado30;
+    // Se qualquer período está ocupado, o quarto está reservado (são os mesmos dias)
+    const quartoReservado = ocupado29 || ocupado30;
     
     const visualizando = (q.id * 3 + 2) % 5 + 3;
     
     let periodoStatus = '';
-    if (ambosOcupados) {
-        periodoStatus = `<div class="room-status ocupado"><i data-lucide="x-circle"></i> Esgotado para o Réveillon</div>`;
+    if (quartoReservado) {
+        periodoStatus = `<div class="room-status ocupado"><i data-lucide="x-circle"></i> Quarto já reservado para o Réveillon</div>`;
     } else {
         periodoStatus = `
             <div class="room-periodos">
-                <div class="periodo-item ${ocupado29 ? 'ocupado' : 'disponivel'}">
-                    <i data-lucide="${ocupado29 ? 'x-circle' : 'check-circle'}"></i>
-                    <span>29/12 - 02/01</span>
-                    <small>${ocupado29 ? 'Reservado' : 'Disponível'}</small>
-                </div>
-                <div class="periodo-item ${ocupado30 ? 'ocupado' : 'disponivel'}">
-                    <i data-lucide="${ocupado30 ? 'x-circle' : 'check-circle'}"></i>
-                    <span>30/12 - 03/01</span>
-                    <small>${ocupado30 ? 'Reservado' : 'Disponível'}</small>
+                <div class="periodo-item disponivel">
+                    <i data-lucide="check-circle"></i>
+                    <span>Réveillon 2025</span>
+                    <small>Disponível!</small>
                 </div>
             </div>
+            <p class="periodo-info"><i data-lucide="info"></i> Escolha entre 29/12-02/01 ou 30/12-03/01</p>
         `;
     }
     
     return `
-        <div class="room-card ${ambosOcupados ? 'esgotado' : ''}">
+        <div class="room-card ${quartoReservado ? 'esgotado' : ''}">
             <div class="room-image">
                 <img src="${fotoUrl}" alt="${q.nome_praia}">
                 ${q.destaque ? `<span class="room-tag">${q.destaque}</span>` : ''}
-                ${!ambosOcupados ? `<div class="room-visualizando"><i data-lucide="eye"></i> ${visualizando} pessoas vendo agora</div>` : ''}
+                ${!quartoReservado ? `<div class="room-visualizando"><i data-lucide="eye"></i> ${visualizando} pessoas vendo agora</div>` : ''}
             </div>
             <div class="room-content">
                 <div class="room-header">
@@ -125,9 +122,9 @@ function renderRoomCard(q) {
                         <span class="price-value">${helpers.formatCurrency(q.preco)}</span>
                         <span class="price-period">4 diárias</span>
                     </div>
-                    <button class="room-cta" data-room-id="${q.id}" ${ambosOcupados ? 'disabled' : ''}>
-                        <i data-lucide="${ambosOcupados ? 'x' : 'message-circle'}"></i>
-                        ${ambosOcupados ? 'Esgotado' : 'Tenho Interesse'}
+                    <button class="room-cta" data-room-id="${q.id}" ${quartoReservado ? 'disabled' : ''}>
+                        <i data-lucide="${quartoReservado ? 'x' : 'message-circle'}"></i>
+                        ${quartoReservado ? 'Reservado' : 'Tenho Interesse'}
                     </button>
                 </div>
             </div>

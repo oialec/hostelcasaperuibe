@@ -55,6 +55,7 @@ async function loadReservas() {
 function renderReservas() {
     const pendentes = reservas.filter(r => r.status === 'pre_reserva');
     const confirmadas = reservas.filter(r => ['confirmada','aguardando_sinal','sinal_pago','checkin'].includes(r.status));
+    const historico = reservas.filter(r => ['finalizada','cancelada'].includes(r.status));
     const labels = { pre_reserva:'Pré-reserva', confirmada:'Confirmada', aguardando_sinal:'Aguardando Sinal', sinal_pago:'Sinal Pago', checkin:'Check-in', finalizada:'Finalizada', cancelada:'Cancelada' };
     
     document.getElementById('reservasPendentes').innerHTML = pendentes.length === 0
@@ -64,12 +65,21 @@ function renderReservas() {
     document.getElementById('reservasConfirmadas').innerHTML = confirmadas.length === 0
         ? '<div class="empty-state"><h3>Nenhuma reserva confirmada</h3></div>'
         : confirmadas.map(r => renderReservaCard(r, labels)).join('');
+    
+    // Histórico (canceladas e finalizadas)
+    const historicoEl = document.getElementById('reservasHistorico');
+    if (historicoEl) {
+        historicoEl.innerHTML = historico.length === 0
+            ? '<div class="empty-state"><h3>Nenhum histórico ainda</h3><p>Reservas canceladas e finalizadas aparecerão aqui</p></div>'
+            : historico.map(r => renderReservaCard(r, labels, true)).join('');
+    }
 }
 
-function renderReservaCard(r, labels) {
+function renderReservaCard(r, labels, isHistorico = false) {
     const q = quartos.find(x => x.id === r.quarto_id) || {};
     const isPending = r.status === 'pre_reserva';
-    return `<div class="reservation-card">
+    const dataReserva = r.created_at ? new Date(r.created_at).toLocaleDateString('pt-BR') : '';
+    return `<div class="reservation-card ${isHistorico ? 'historico' : ''}">
         <div class="reservation-header">
             <h3>${r.nome_responsavel}</h3>
             <span class="status-badge ${r.status}">${labels[r.status]}</span>
@@ -80,7 +90,10 @@ function renderReservaCard(r, labels) {
                 <div class="info-row"><strong>Período:</strong> ${helpers.formatPeriodo(r.periodo)}</div>
                 <div class="info-row"><strong>Hóspedes:</strong> ${r.qtd_hospedes} pessoas</div>
                 <div class="info-row"><strong>WhatsApp:</strong> ${helpers.formatPhone(r.whatsapp)}</div>
+                <div class="info-row"><strong>E-mail:</strong> ${r.email || 'N/A'}</div>
+                <div class="info-row"><strong>CPF:</strong> ${r.cpf_responsavel || 'N/A'}</div>
                 <div class="info-row"><strong>Valor:</strong> ${helpers.formatCurrency(r.valor_total || q.preco || 0)}</div>
+                <div class="info-row"><strong>Data pedido:</strong> ${dataReserva}</div>
                 ${r.observacoes ? `<div class="info-row"><strong>Obs:</strong> ${r.observacoes}</div>` : ''}
             </div>
             <div class="reservation-actions">
@@ -88,7 +101,7 @@ function renderReservaCard(r, labels) {
                     <button class="btn btn-success" onclick="confirmarReserva('${r.id}')">✓ Confirmar</button>
                     <button class="btn btn-danger" onclick="cancelarReserva('${r.id}')">✗ Recusar</button>
                 ` : ''}
-                <button class="btn btn-outline" onclick="editarReserva('${r.id}')">✏️ Editar</button>
+                ${!isHistorico ? `<button class="btn btn-outline" onclick="editarReserva('${r.id}')">✏️ Editar</button>` : ''}
                 <button class="btn btn-outline" onclick="gerarContrato('${r.id}')">📄 Contrato</button>
                 <button class="btn btn-whatsapp" onclick="enviarWhatsApp('${r.id}')">💬 WhatsApp</button>
             </div>
@@ -107,7 +120,7 @@ function updateStats() {
 }
 
 async function confirmarReserva(id) {
-    if (!confirm('Confirmar reserva e bloquear quarto?')) return;
+    if (!confirm('Confirmar reserva e bloquear quarto?\n\n⚠️ Os dois períodos (29/12-02/01 e 30/12-03/01) serão bloqueados pois são os mesmos dias.')) return;
     try {
         // Buscar a reserva
         const reserva = reservas.find(r => r.id === id);
@@ -116,19 +129,16 @@ async function confirmarReserva(id) {
         // Atualizar status da reserva
         await supabase.update('reservas', { status: 'confirmada' }, `id=eq.${id}`);
         
-        // BLOQUEAR O QUARTO para o período específico
+        // BLOQUEAR AMBOS OS PERÍODOS (são os mesmos dias, só muda entrada/saída)
         const quartoId = reserva.quarto_id;
-        const periodo = reserva.periodo;
-        
-        if (periodo === '29-02') {
-            await supabase.update('quartos', { status_29_02: 'ocupado' }, `id=eq.${quartoId}`);
-        } else if (periodo === '30-03') {
-            await supabase.update('quartos', { status_30_03: 'ocupado' }, `id=eq.${quartoId}`);
-        }
+        await supabase.update('quartos', { 
+            status_29_02: 'ocupado',
+            status_30_03: 'ocupado'
+        }, `id=eq.${quartoId}`);
         
         await loadQuartos();
         await loadReservas();
-        alert('Reserva confirmada e quarto bloqueado!');
+        alert('Reserva confirmada! Quarto bloqueado para ambos os períodos.');
     } catch (e) { 
         console.error(e);
         alert('Erro ao confirmar: ' + e.message); 
@@ -136,27 +146,25 @@ async function confirmarReserva(id) {
 }
 
 async function cancelarReserva(id) {
-    if (!confirm('Cancelar esta reserva? O quarto será liberado.')) return;
+    if (!confirm('Cancelar esta reserva?\n\nA reserva será marcada como cancelada mas ficará no histórico.\nO quarto será liberado para novos interessados.')) return;
     try {
         // Buscar a reserva
         const reserva = reservas.find(r => r.id === id);
         
-        // Se estava confirmada, liberar o quarto
+        // Se estava confirmada, liberar o quarto (ambos os períodos)
         if (reserva && ['confirmada','aguardando_sinal','sinal_pago','checkin'].includes(reserva.status)) {
             const quartoId = reserva.quarto_id;
-            const periodo = reserva.periodo;
-            
-            if (periodo === '29-02') {
-                await supabase.update('quartos', { status_29_02: 'disponivel' }, `id=eq.${quartoId}`);
-            } else if (periodo === '30-03') {
-                await supabase.update('quartos', { status_30_03: 'disponivel' }, `id=eq.${quartoId}`);
-            }
+            await supabase.update('quartos', { 
+                status_29_02: 'disponivel',
+                status_30_03: 'disponivel'
+            }, `id=eq.${quartoId}`);
         }
         
+        // Marca como cancelada (NÃO deleta - mantém histórico)
         await supabase.update('reservas', { status: 'cancelada' }, `id=eq.${id}`);
         await loadQuartos();
         await loadReservas();
-        alert('Reserva cancelada e quarto liberado!');
+        alert('Reserva cancelada! Histórico mantido para controle.');
     } catch (e) { alert('Erro ao cancelar.'); }
 }
 

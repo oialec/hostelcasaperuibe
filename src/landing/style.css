@@ -368,3 +368,18 @@ footer { background: var(--ocean-deep); color: white; padding: 40px 20px; text-a
     display: inline-block;
     vertical-align: middle;
 }
+
+/* Info período */
+.periodo-info {
+    font-size: 12px;
+    color: #666;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.periodo-info i {
+    width: 14px;
+    height: 14px;
+}

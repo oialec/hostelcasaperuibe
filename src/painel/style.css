@@ -126,3 +126,17 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
     .reservation-actions { flex-direction: column; }
     .btn { justify-content: center; }
 }
+
+/* Histórico */
+.reservation-card.historico {
+    opacity: 0.7;
+    background: #f5f5f5;
+}
+
+.reservation-card.historico .status-badge.cancelada {
+    background: #dc3545;
+}
+
+.reservation-card.historico .status-badge.finalizada {
+    background: #6c757d;
+}
