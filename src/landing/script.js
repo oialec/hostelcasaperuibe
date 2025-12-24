@@ -225,6 +225,7 @@ function setupForm() {
         const quarto = quartos.find(q => q.id == quartoId);
         
         try {
+            // Inserir reserva
             await supabase.insert('reservas', {
                 nome_responsavel: nome,
                 whatsapp: whatsapp.replace(/\D/g, ''),
@@ -238,7 +239,14 @@ function setupForm() {
                 valor_sinal: (quarto?.preco || 0) * 0.5,
                 status: 'pre_reserva'
             });
-        } catch (err) { console.log('Continua para WhatsApp'); }
+            
+            // Bloquear o período do quarto
+            const updateData = periodo === '29-02' 
+                ? { status_29_02: 'pre_reserva' } 
+                : { status_30_03: 'pre_reserva' };
+            await supabase.update('quartos', updateData, `id=eq.${quartoId}`);
+            
+        } catch (err) { console.log('Erro ao salvar, mas continua para WhatsApp:', err); }
         
         const periodoTexto = periodo === '29-02' ? '29/12 a 02/01' : '30/12 a 03/01';
         const msg = `Olá Davi! 🏖️

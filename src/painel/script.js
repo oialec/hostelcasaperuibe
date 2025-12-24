@@ -109,17 +109,54 @@ function updateStats() {
 async function confirmarReserva(id) {
     if (!confirm('Confirmar reserva e bloquear quarto?')) return;
     try {
+        // Buscar a reserva
+        const reserva = reservas.find(r => r.id === id);
+        if (!reserva) { alert('Reserva não encontrada'); return; }
+        
+        // Atualizar status da reserva
         await supabase.update('reservas', { status: 'confirmada' }, `id=eq.${id}`);
+        
+        // BLOQUEAR O QUARTO para o período específico
+        const quartoId = reserva.quarto_id;
+        const periodo = reserva.periodo;
+        
+        if (periodo === '29-02') {
+            await supabase.update('quartos', { status_29_02: 'ocupado' }, `id=eq.${quartoId}`);
+        } else if (periodo === '30-03') {
+            await supabase.update('quartos', { status_30_03: 'ocupado' }, `id=eq.${quartoId}`);
+        }
+        
+        await loadQuartos();
         await loadReservas();
-        alert('Reserva confirmada!');
-    } catch (e) { alert('Erro ao confirmar.'); }
+        alert('Reserva confirmada e quarto bloqueado!');
+    } catch (e) { 
+        console.error(e);
+        alert('Erro ao confirmar: ' + e.message); 
+    }
 }
 
 async function cancelarReserva(id) {
-    if (!confirm('Cancelar esta reserva?')) return;
+    if (!confirm('Cancelar esta reserva? O quarto será liberado.')) return;
     try {
+        // Buscar a reserva
+        const reserva = reservas.find(r => r.id === id);
+        
+        // Se estava confirmada, liberar o quarto
+        if (reserva && ['confirmada','aguardando_sinal','sinal_pago','checkin'].includes(reserva.status)) {
+            const quartoId = reserva.quarto_id;
+            const periodo = reserva.periodo;
+            
+            if (periodo === '29-02') {
+                await supabase.update('quartos', { status_29_02: 'disponivel' }, `id=eq.${quartoId}`);
+            } else if (periodo === '30-03') {
+                await supabase.update('quartos', { status_30_03: 'disponivel' }, `id=eq.${quartoId}`);
+            }
+        }
+        
         await supabase.update('reservas', { status: 'cancelada' }, `id=eq.${id}`);
+        await loadQuartos();
         await loadReservas();
+        alert('Reserva cancelada e quarto liberado!');
     } catch (e) { alert('Erro ao cancelar.'); }
 }
 
