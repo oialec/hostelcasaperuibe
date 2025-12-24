@@ -42,9 +42,24 @@ async function loadQuartos() {
     const grid = document.getElementById('roomsGrid');
     if (!grid) return;
     try {
-        try { quartos = await supabase.select('quartos_disponibilidade'); }
-        catch { quartos = await supabase.select('quartos', 'ativo=eq.true&order=ordem'); }
-        if (!quartos || quartos.length === 0) { grid.innerHTML = '<p style="text-align:center;">Nenhum quarto disponível.</p>'; return; }
+        // Tenta a view primeiro, se falhar vai direto na tabela
+        try { 
+            quartos = await supabase.select('quartos_disponibilidade'); 
+        } catch (e) { 
+            console.log('View não existe, buscando da tabela quartos');
+            quartos = await supabase.select('quartos', 'ativo=eq.true&order=ordem'); 
+        }
+        
+        // Se ainda não tem quartos, tenta sem filtro
+        if (!quartos || quartos.length === 0) { 
+            quartos = await supabase.select('quartos', 'order=ordem');
+        }
+        
+        if (!quartos || quartos.length === 0) { 
+            grid.innerHTML = '<p style="text-align:center;">Nenhum quarto disponível no momento.</p>'; 
+            return; 
+        }
+        
         grid.innerHTML = quartos.map(renderRoomCard).join('');
         const select = document.getElementById('quarto');
         if (select) {
@@ -61,7 +76,10 @@ async function loadQuartos() {
         document.querySelectorAll('.room-cta').forEach(btn => {
             btn.addEventListener('click', () => openReservaModal(btn.dataset.roomId));
         });
-    } catch (e) { console.error('Erro quartos:', e); grid.innerHTML = '<p style="text-align:center;color:var(--danger);">Erro ao carregar.</p>'; }
+    } catch (e) { 
+        console.error('Erro quartos:', e); 
+        grid.innerHTML = '<p style="text-align:center;color:var(--danger);">Erro ao carregar quartos. Verifique a conexão.</p>'; 
+    }
 }
 
 function renderRoomCard(q) {
@@ -105,8 +123,8 @@ function renderRoomCard(q) {
                 </div>
             </div>
             <button class="room-cta" data-room-id="${q.id}" ${!isAvailable ? 'disabled' : ''}>
-                <i data-lucide="${isAvailable ? 'calendar-check' : 'x'}"></i>
-                ${isAvailable ? 'Reservar Este' : 'Esgotado'}
+                <i data-lucide="${isAvailable ? 'message-circle' : 'x'}"></i>
+                ${isAvailable ? 'Tenho Interesse' : 'Esgotado'}
             </button>
         </div>
     </div>`;
@@ -187,7 +205,7 @@ function setupForm() {
             alert('Erro ao enviar. Tente novamente.');
         } finally {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i data-lucide="send"></i> Enviar e Falar com Davi';
+            submitBtn.innerHTML = '<i data-lucide="message-circle"></i> Conversar com Davi no WhatsApp';
             lucide.createIcons();
         }
     });

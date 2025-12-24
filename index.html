@@ -35,13 +35,13 @@
     <!-- COMO FUNCIONA -->
     <section class="how-it-works" id="como-funciona">
         <div class="container">
-            <div class="section-header"><h2><i data-lucide="help-circle"></i> Como Funciona?</h2><p>Super simples! Em 3 passos você garante seu quarto</p></div>
+            <div class="section-header"><h2><i data-lucide="help-circle"></i> Como Funciona?</h2><p>Simples e direto! Veja como garantir seu quarto</p></div>
             <div class="steps">
-                <div class="step"><div class="step-icon"><i data-lucide="bed"></i></div><h3>1. Escolha seu quarto</h3><p>Veja as opções e escolha o que cabe no seu bolso</p></div>
-                <div class="step"><div class="step-icon"><i data-lucide="message-circle"></i></div><h3>2. Fale com o Davi</h3><p>Tire suas dúvidas direto pelo WhatsApp</p></div>
-                <div class="step"><div class="step-icon"><i data-lucide="check-circle"></i></div><h3>3. Pague o sinal</h3><p>50% via Pix e pronto, quarto garantido!</p></div>
+                <div class="step"><div class="step-icon"><i data-lucide="mouse-pointer-click"></i></div><h3>1. Escolha e clique em "Tenho Interesse"</h3><p>Veja os quartos disponíveis e clique no que mais gostar</p></div>
+                <div class="step"><div class="step-icon"><i data-lucide="message-circle"></i></div><h3>2. Converse com o Davi</h3><p>Você será redirecionado pro WhatsApp. Tire dúvidas, negocie, conheça melhor a casa</p></div>
+                <div class="step"><div class="step-icon"><i data-lucide="shield-check"></i></div><h3>3. Confirme com 50% de sinal</h3><p>Só depois do Pix o quarto fica bloqueado pra você!</p></div>
             </div>
-            <div class="how-highlight"><i data-lucide="lightbulb"></i><strong>Você reserva o QUARTO, não a casa toda.</strong> Ideal pra dividir custos com seu grupo!</div>
+            <div class="how-highlight"><i data-lucide="alert-circle"></i><strong>Importante:</strong> Clicar em "Tenho Interesse" NÃO garante a reserva. É apenas o primeiro passo pra conversar com o Davi e alinhar os detalhes.</div>
         </div>
     </section>
 
@@ -135,7 +135,7 @@
         <div class="container">
             <div class="section-header"><h2><i data-lucide="user-circle"></i> Conheça o Anfitrião</h2></div>
             <div class="host-card">
-                <div class="host-photo"><div class="host-photo-placeholder">👤</div></div>
+                <div class="host-photo"><img src="https://vzdgwosgcojhztbrkukh.supabase.co/storage/v1/object/public/hostel-fotos/davi.png" alt="Davi - Anfitrião" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="host-photo-placeholder" style="display:none">👤</div></div>
                 <div class="host-info">
                     <h3>Quem é o Davi?</h3>
                     <p>Moro em Peruíbe há mais de 10 anos. Essa casa era minha moradia — conheço cada canto. Trabalho com locação de veículos (Jetcar) e resolvi compartilhar o espaço no Réveillon. Qualquer dúvida, me chama no WhatsApp!</p>
@@ -236,8 +236,8 @@
         <div class="modal-content">
             <button class="modal-close" id="closeModal"><i data-lucide="x"></i></button>
             <div class="modal-header">
-                <h2><i data-lucide="calendar-check"></i> Fazer Pré-Reserva</h2>
-                <p>Preencha os dados e fale direto com o Davi pelo WhatsApp!</p>
+                <h2><i data-lucide="message-circle"></i> Demonstrar Interesse</h2>
+                <p>Preencha seus dados para conversar com o Davi no WhatsApp</p>
             </div>
             <form class="booking-form" id="bookingForm">
                 <div class="form-group"><label>Seu nome completo <span>*</span></label><input type="text" id="nome" required placeholder="Nome completo"></div>
@@ -265,14 +265,14 @@
                 </div>
                 <div class="form-group"><label>Alguma observação?</label><textarea id="observacoes" placeholder="Ex: chegamos tarde, temos criança..."></textarea></div>
                 <div class="form-group"><div class="checkbox-group"><input type="checkbox" id="regrasAceitas" required><label for="regrasAceitas">Li e concordo com as <a href="#regras" style="color: var(--ocean-deep);">regras da casa</a></label></div></div>
-                <button type="submit" class="form-submit" id="submitBtn"><i data-lucide="send"></i>Enviar e Falar com Davi</button>
+                <button type="submit" class="form-submit" id="submitBtn"><i data-lucide="message-circle"></i>Conversar com Davi no WhatsApp</button>
                 <p class="form-security"><i data-lucide="shield-check"></i>Seus dados estão seguros</p>
             </form>
         </div>
     </div>
 
     <!-- MOBILE CTA -->
-    <div class="mobile-cta"><button class="mobile-cta-btn"><i data-lucide="calendar-check"></i>Fazer Reserva</button></div>
+    <div class="mobile-cta"><button class="mobile-cta-btn"><i data-lucide="message-circle"></i>Tenho Interesse</button></div>
 
     <script src="src/lib/supabase.js"></script>
     <script src="src/landing/script.js"></script>
