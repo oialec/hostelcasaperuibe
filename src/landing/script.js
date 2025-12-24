@@ -1,8 +1,6 @@
-// Variáveis globais
 let quartos = [];
 let config = {};
 
-// Inicialização
 document.addEventListener('DOMContentLoaded', async () => {
     lucide.createIcons();
     await loadConfig();
@@ -11,40 +9,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupAccordion();
     setupQuantity();
     setupMasks();
+    setupModal();
 });
 
-// Carregar configurações
 async function loadConfig() {
     try {
         const data = await supabase.select('config');
         config = {};
-        data.forEach(item => {
-            config[item.chave] = item.valor;
-        });
-        
-        // Atualizar distâncias
+        data.forEach(item => config[item.chave] = item.valor);
         updateText('distPraia', config.distancia_praia);
         updateText('heroDistPraia', config.distancia_praia);
         updateText('distMercado', config.distancia_mercado);
         updateText('distMcdonalds', config.distancia_mcdonalds);
         updateText('distCentro', config.distancia_centro);
-        
-        // Mapa
         if (config.endereco_maps) {
             const mapContainer = document.getElementById('locationMap');
-            if (mapContainer) {
-                mapContainer.innerHTML = `<iframe src="${config.endereco_maps}" allowfullscreen="" loading="lazy"></iframe>`;
-            }
+            if (mapContainer) mapContainer.innerHTML = `<iframe src="${config.endereco_maps}" allowfullscreen="" loading="lazy"></iframe>`;
         }
-        
-        // Foto hero
         if (config.foto_hero) {
             const heroBg = document.getElementById('heroBgImage');
             if (heroBg) heroBg.style.backgroundImage = `url(${config.foto_hero})`;
         }
-    } catch (error) {
-        console.error('Erro ao carregar config:', error);
-    }
+    } catch (e) { console.error('Erro config:', e); }
 }
 
 function updateText(id, value) {
@@ -52,178 +38,123 @@ function updateText(id, value) {
     if (el && value) el.textContent = value;
 }
 
-// Carregar quartos
 async function loadQuartos() {
     const grid = document.getElementById('roomsGrid');
     if (!grid) return;
-    
     try {
-        // Tentar view primeiro
-        try {
-            quartos = await supabase.select('quartos_disponibilidade');
-        } catch {
-            quartos = await supabase.select('quartos', 'ativo=eq.true&order=ordem');
-        }
-        
-        if (!quartos || quartos.length === 0) {
-            grid.innerHTML = '<p style="text-align:center;">Nenhum quarto disponível no momento.</p>';
-            return;
-        }
-        
+        try { quartos = await supabase.select('quartos_disponibilidade'); }
+        catch { quartos = await supabase.select('quartos', 'ativo=eq.true&order=ordem'); }
+        if (!quartos || quartos.length === 0) { grid.innerHTML = '<p style="text-align:center;">Nenhum quarto disponível.</p>'; return; }
         grid.innerHTML = quartos.map(renderRoomCard).join('');
-        
-        // Atualizar select
         const select = document.getElementById('quarto');
         if (select) {
             quartos.forEach(q => {
-                const option = document.createElement('option');
-                option.value = q.id;
-                option.textContent = `${q.nome_praia} - ${q.tipo} (${helpers.formatCurrency(q.preco)})`;
-                option.dataset.capacidade = q.capacidade;
-                option.dataset.preco = q.preco;
-                select.appendChild(option);
+                const opt = document.createElement('option');
+                opt.value = q.id;
+                opt.textContent = `${q.nome_praia} - ${q.tipo} (${helpers.formatCurrency(q.preco)})`;
+                opt.dataset.capacidade = q.capacidade;
+                opt.dataset.preco = q.preco;
+                select.appendChild(opt);
             });
         }
-        
         lucide.createIcons();
-        
-        // Eventos dos botões
         document.querySelectorAll('.room-cta').forEach(btn => {
-            btn.addEventListener('click', () => selectRoom(btn.dataset.roomId));
+            btn.addEventListener('click', () => openReservaModal(btn.dataset.roomId));
         });
-    } catch (error) {
-        console.error('Erro ao carregar quartos:', error);
-        grid.innerHTML = '<p style="text-align:center;color:var(--danger);">Erro ao carregar quartos.</p>';
-    }
+    } catch (e) { console.error('Erro quartos:', e); grid.innerHTML = '<p style="text-align:center;color:var(--danger);">Erro ao carregar.</p>'; }
 }
 
-// Renderizar card
-function renderRoomCard(quarto) {
-    const status29 = quarto.status_29_02 || 'disponivel';
-    const status30 = quarto.status_30_03 || 'disponivel';
+function renderRoomCard(q) {
+    const status29 = q.status_29_02 || 'disponivel';
+    const status30 = q.status_30_03 || 'disponivel';
+    // Lógica de período exclusivo
+    const statusGeral = (status29 === 'ocupado' || status30 === 'ocupado') ? 'ocupado' : 
+                        (status29 === 'pre_reserva' || status30 === 'pre_reserva') ? 'pre_reserva' : 'disponivel';
+    const statusInfo = { disponivel: { text: 'Disponível', icon: 'check-circle' }, pre_reserva: { text: 'Em negociação', icon: 'clock' }, ocupado: { text: 'Esgotado', icon: 'x-circle' } };
+    const precoPorPessoa = Math.ceil(q.preco / q.capacidade / 4); // por noite
+    const isAvailable = statusGeral !== 'ocupado';
     
-    const statusInfo = {
-        'disponivel': { text: 'Disponível', icon: 'check-circle' },
-        'pre_reserva': { text: 'Em negociação', icon: 'clock' },
-        'ocupado': { text: 'Esgotado', icon: 'x-circle' }
-    };
-    
-    const precoPorPessoa = Math.ceil(quarto.preco / quarto.capacidade);
-    const isAvailable = status29 !== 'ocupado' || status30 !== 'ocupado';
-    
-    return `
-        <div class="room-card">
-            <div class="room-image">
-                ${quarto.foto_url 
-                    ? `<img src="${quarto.foto_url}" alt="${quarto.nome_praia}" loading="lazy">`
-                    : `<div class="room-image-placeholder">
-                        <i data-lucide="image"></i>
-                        <span>Foto em breve</span>
-                      </div>`
-                }
-                ${quarto.destaque ? `<span class="room-tag">${quarto.destaque}</span>` : ''}
-            </div>
-            <div class="room-content">
-                <p class="room-name">
-                    <i data-lucide="umbrella"></i>
-                    ${quarto.nome_praia}
-                </p>
-                <h3 class="room-type">${quarto.tipo}</h3>
-                
-                <div class="room-info">
-                    <div class="room-info-item">
-                        <i data-lucide="users"></i>
-                        <span>Até ${quarto.capacidade} pessoas</span>
-                    </div>
-                    <div class="room-info-item">
-                        <i data-lucide="bed-double"></i>
-                        <span>${quarto.camas || 'A definir'}</span>
-                    </div>
-                    ${quarto.descricao ? `
-                    <div class="room-info-item">
-                        <i data-lucide="info"></i>
-                        <span>${quarto.descricao}</span>
-                    </div>
-                    ` : ''}
-                </div>
-                
-                <div class="room-amenities">
-                    <span class="amenity ${quarto.tem_ar ? 'yes' : 'no'}">
-                        <i data-lucide="${quarto.tem_ar ? 'check' : 'x'}"></i>
-                        AR
-                    </span>
-                    <span class="amenity ${quarto.tem_tv ? 'yes' : 'no'}">
-                        <i data-lucide="${quarto.tem_tv ? 'check' : 'x'}"></i>
-                        TV
-                    </span>
-                    <span class="amenity yes">
-                        <i data-lucide="check"></i>
-                        Wi-Fi
-                    </span>
-                </div>
-                
-                <div class="room-price-box">
-                    <div class="room-price">${helpers.formatCurrency(quarto.preco)}</div>
-                    <div class="room-price-period">período completo (4 diárias)</div>
-                    <div class="room-price-per-person">= ${helpers.formatCurrency(precoPorPessoa)}/pessoa</div>
-                </div>
-                
-                <div class="room-availability">
-                    <p class="room-availability-title">📅 Disponibilidade:</p>
-                    <div class="availability-item ${status29}">
-                        <i data-lucide="${statusInfo[status29].icon}"></i>
-                        29/12 a 02/01 - ${statusInfo[status29].text}
-                    </div>
-                    <div class="availability-item ${status30}">
-                        <i data-lucide="${statusInfo[status30].icon}"></i>
-                        30/12 a 03/01 - ${statusInfo[status30].text}
-                    </div>
-                </div>
-                
-                <button class="room-cta" data-room-id="${quarto.id}" ${!isAvailable ? 'disabled' : ''}>
-                    <i data-lucide="${isAvailable ? 'calendar-check' : 'x'}"></i>
-                    ${isAvailable ? 'Reservar Este' : 'Esgotado'}
-                </button>
-            </div>
+    return `<div class="room-card">
+        <div class="room-image">
+            ${q.foto_url ? `<img src="${q.foto_url}" alt="${q.nome_praia}" loading="lazy">` : `<div class="room-image-placeholder"><i data-lucide="image"></i><span>Foto em breve</span></div>`}
+            ${q.destaque ? `<span class="room-tag">${q.destaque}</span>` : ''}
         </div>
-    `;
+        <div class="room-content">
+            <p class="room-name"><i data-lucide="umbrella"></i>${q.nome_praia}</p>
+            <h3 class="room-type">${q.tipo}</h3>
+            <div class="room-info">
+                <div class="room-info-item"><i data-lucide="users"></i><span>Até ${q.capacidade} pessoas</span></div>
+                <div class="room-info-item"><i data-lucide="bed-double"></i><span>${q.camas || 'A definir'}</span></div>
+                ${q.descricao ? `<div class="room-info-item"><i data-lucide="info"></i><span>${q.descricao}</span></div>` : ''}
+            </div>
+            <div class="room-amenities">
+                <span class="amenity ${q.tem_ar ? 'yes' : 'no'}"><i data-lucide="${q.tem_ar ? 'check' : 'x'}"></i>AR</span>
+                <span class="amenity ${q.tem_tv ? 'yes' : 'no'}"><i data-lucide="${q.tem_tv ? 'check' : 'x'}"></i>TV</span>
+                <span class="amenity yes"><i data-lucide="check"></i>Wi-Fi</span>
+            </div>
+            <div class="room-price-box">
+                <div class="room-price">${helpers.formatCurrency(q.preco)}</div>
+                <div class="room-price-period">período completo (4 diárias)</div>
+                <div class="room-price-per-person">= ${helpers.formatCurrency(precoPorPessoa)}/noite por pessoa</div>
+            </div>
+            <div class="room-availability">
+                <p class="room-availability-title">📅 Disponibilidade:</p>
+                <div class="availability-item ${statusGeral}">
+                    <i data-lucide="${statusInfo[statusGeral].icon}"></i>
+                    Réveillon (29/12 a 03/01) - ${statusInfo[statusGeral].text}
+                </div>
+            </div>
+            <button class="room-cta" data-room-id="${q.id}" ${!isAvailable ? 'disabled' : ''}>
+                <i data-lucide="${isAvailable ? 'calendar-check' : 'x'}"></i>
+                ${isAvailable ? 'Reservar Este' : 'Esgotado'}
+            </button>
+        </div>
+    </div>`;
 }
 
-// Selecionar quarto
-function selectRoom(roomId) {
-    const select = document.getElementById('quarto');
-    if (select) {
-        select.value = roomId;
-        
-        // Atualizar capacidade máxima
-        const option = select.options[select.selectedIndex];
-        if (option && option.dataset.capacidade) {
-            const maxQtd = parseInt(option.dataset.capacidade);
-            const qtdValue = document.getElementById('qtdValue');
-            const qtdInput = document.getElementById('qtdHospedes');
-            if (qtdValue && parseInt(qtdValue.textContent) > maxQtd) {
-                qtdValue.textContent = maxQtd;
-                if (qtdInput) qtdInput.value = maxQtd;
-            }
+// MODAL
+function setupModal() {
+    document.getElementById('closeModal')?.addEventListener('click', closeReservaModal);
+    document.getElementById('reservaModal')?.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) closeReservaModal();
+    });
+    document.querySelector('.mobile-cta-btn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        openReservaModal();
+    });
+}
+
+function openReservaModal(quartoId = null) {
+    const modal = document.getElementById('reservaModal');
+    if (!modal) return;
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    if (quartoId) {
+        const select = document.getElementById('quarto');
+        if (select) {
+            select.value = quartoId;
+            select.dispatchEvent(new Event('change'));
         }
     }
-    
-    // Scroll pro formulário
-    document.getElementById('reservar')?.scrollIntoView({ behavior: 'smooth' });
+    lucide.createIcons();
 }
 
-// Setup do formulário
+function closeReservaModal() {
+    const modal = document.getElementById('reservaModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
 function setupForm() {
     const form = document.getElementById('bookingForm');
     if (!form) return;
-    
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
         const submitBtn = document.getElementById('submitBtn');
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Enviando...';
-        
+        submitBtn.innerHTML = '<i data-lucide="loader-2"></i> Enviando...';
         try {
             const formData = {
                 nome_responsavel: document.getElementById('nome').value.trim(),
@@ -236,154 +167,92 @@ function setupForm() {
                 observacoes: document.getElementById('observacoes').value.trim(),
                 status: 'pre_reserva'
             };
-            
-            // Pegar preço do quarto selecionado
-            const quartoSelecionado = quartos.find(q => q.id === formData.quarto_id);
-            if (quartoSelecionado) {
-                formData.valor_total = quartoSelecionado.preco;
-                formData.valor_sinal = quartoSelecionado.preco * 0.5;
+            const quartoSel = quartos.find(q => q.id === formData.quarto_id);
+            if (quartoSel) {
+                formData.valor_total = quartoSel.preco;
+                formData.valor_sinal = quartoSel.preco * 0.5;
             }
-            
-            // Salvar no Supabase
             await supabase.insert('reservas', formData);
-            
-            // Montar mensagem pro WhatsApp
-            const periodoTexto = formData.periodo === '29-02' ? '29/12 a 02/01' : '30/12 a 03/01';
-            const quartoNome = quartoSelecionado ? `${quartoSelecionado.nome_praia} - ${quartoSelecionado.tipo}` : 'Não selecionado';
-            
-            const mensagem = `Olá Davi! 🏖️
-
-Acabei de fazer uma pré-reserva no site do Hostel Casa Peruíbe!
-
-📋 *Meus dados:*
-• Nome: ${formData.nome_responsavel}
-• WhatsApp: ${helpers.formatPhone(formData.whatsapp)}
-• E-mail: ${formData.email}
-
-🛏️ *Reserva:*
-• Quarto: ${quartoNome}
-• Período: ${periodoTexto}
-• Pessoas: ${formData.qtd_hospedes}
-${formData.observacoes ? `• Obs: ${formData.observacoes}` : ''}
-
-Aguardo confirmação! 😊`;
-            
-            // Redirecionar pro WhatsApp
-            const whatsappUrl = helpers.whatsAppLink(config.telefone || '11998770637', mensagem);
-            window.open(whatsappUrl, '_blank');
-            
-            // Reset form
+            const periodo = formData.periodo === '29-02' ? '29/12 a 02/01' : '30/12 a 03/01';
+            const quartoNome = quartoSel ? `${quartoSel.nome_praia} - ${quartoSel.tipo}` : '';
+            const msg = `Olá Davi! 🏖️\n\nPré-reserva no Guest House Peruíbe!\n\n📋 *Dados:*\n• ${formData.nome_responsavel}\n• WhatsApp: ${helpers.formatPhone(formData.whatsapp)}\n• Email: ${formData.email}\n\n🛏️ *Reserva:*\n• Quarto: ${quartoNome}\n• Período: ${periodo}\n• ${formData.qtd_hospedes} pessoas\n${formData.observacoes ? `• Obs: ${formData.observacoes}` : ''}\n\nAguardo confirmação! 😊`;
+            window.open(helpers.whatsAppLink(config.telefone || '11998770637', msg), '_blank');
             form.reset();
             document.getElementById('qtdValue').textContent = '2';
             document.getElementById('qtdHospedes').value = '2';
-            
-            alert('Pré-reserva enviada! Você será redirecionado para o WhatsApp.');
-            
-        } catch (error) {
-            console.error('Erro ao enviar reserva:', error);
-            alert('Erro ao enviar reserva. Tente novamente ou entre em contato pelo WhatsApp.');
+            closeReservaModal();
+            alert('Pré-reserva enviada! Você foi redirecionado para o WhatsApp.');
+        } catch (e) {
+            console.error('Erro:', e);
+            alert('Erro ao enviar. Tente novamente.');
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i data-lucide="send"></i> Enviar e Falar com Davi';
             lucide.createIcons();
         }
     });
-    
-    // Radio items styling
     document.querySelectorAll('.radio-item input').forEach(input => {
         input.addEventListener('change', () => {
             document.querySelectorAll('.radio-item').forEach(item => item.classList.remove('selected'));
-            if (input.checked) {
-                input.closest('.radio-item').classList.add('selected');
-            }
+            if (input.checked) input.closest('.radio-item').classList.add('selected');
         });
     });
 }
 
-// Accordion
 function setupAccordion() {
     document.querySelectorAll('.accordion-header').forEach(header => {
         header.addEventListener('click', () => {
             const item = header.closest('.accordion-item');
-            const isOpen = item.classList.contains('open');
-            
-            // Fechar outros (opcional - remover se quiser múltiplos abertos)
-            // document.querySelectorAll('.accordion-item').forEach(i => i.classList.remove('open'));
-            
-            item.classList.toggle('open', !isOpen);
+            item.classList.toggle('open');
         });
     });
 }
 
-// Quantity selector
 function setupQuantity() {
     const qtdValue = document.getElementById('qtdValue');
     const qtdInput = document.getElementById('qtdHospedes');
     const minusBtn = document.getElementById('qtdMinus');
     const plusBtn = document.getElementById('qtdPlus');
     const quartoSelect = document.getElementById('quarto');
-    
     if (!qtdValue || !qtdInput || !minusBtn || !plusBtn) return;
-    
     const updateQtd = (delta) => {
         let current = parseInt(qtdValue.textContent);
         let max = 5;
-        
-        // Pegar capacidade máxima do quarto selecionado
-        if (quartoSelect && quartoSelect.value) {
-            const option = quartoSelect.options[quartoSelect.selectedIndex];
-            if (option && option.dataset.capacidade) {
-                max = parseInt(option.dataset.capacidade);
-            }
+        if (quartoSelect?.value) {
+            const opt = quartoSelect.options[quartoSelect.selectedIndex];
+            if (opt?.dataset.capacidade) max = parseInt(opt.dataset.capacidade);
         }
-        
         current = Math.max(1, Math.min(max, current + delta));
         qtdValue.textContent = current;
         qtdInput.value = current;
     };
-    
     minusBtn.addEventListener('click', () => updateQtd(-1));
     plusBtn.addEventListener('click', () => updateQtd(1));
-    
-    // Atualizar max quando mudar quarto
-    if (quartoSelect) {
-        quartoSelect.addEventListener('change', () => {
-            const option = quartoSelect.options[quartoSelect.selectedIndex];
-            if (option && option.dataset.capacidade) {
-                const max = parseInt(option.dataset.capacidade);
-                const current = parseInt(qtdValue.textContent);
-                if (current > max) {
-                    qtdValue.textContent = max;
-                    qtdInput.value = max;
-                }
-            }
-        });
-    }
+    quartoSelect?.addEventListener('change', () => {
+        const opt = quartoSelect.options[quartoSelect.selectedIndex];
+        if (opt?.dataset.capacidade) {
+            const max = parseInt(opt.dataset.capacidade);
+            const current = parseInt(qtdValue.textContent);
+            if (current > max) { qtdValue.textContent = max; qtdInput.value = max; }
+        }
+    });
 }
 
-// Máscaras de input
 function setupMasks() {
-    // WhatsApp
-    const whatsappInput = document.getElementById('whatsapp');
-    if (whatsappInput) {
-        whatsappInput.addEventListener('input', (e) => {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length <= 11) {
-                value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-            }
-            e.target.value = value;
+    const whatsapp = document.getElementById('whatsapp');
+    if (whatsapp) {
+        whatsapp.addEventListener('input', (e) => {
+            let v = e.target.value.replace(/\D/g, '');
+            if (v.length <= 11) v = v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+            e.target.value = v;
         });
     }
-    
-    // CPF
-    const cpfInput = document.getElementById('cpf');
-    if (cpfInput) {
-        cpfInput.addEventListener('input', (e) => {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length <= 11) {
-                value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-            }
-            e.target.value = value;
+    const cpf = document.getElementById('cpf');
+    if (cpf) {
+        cpf.addEventListener('input', (e) => {
+            let v = e.target.value.replace(/\D/g, '');
+            if (v.length <= 11) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            e.target.value = v;
         });
     }
 }

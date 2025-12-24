@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel - Hostel Casa Peruíbe</title>
+    <title>Painel - Guest House Peruíbe</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -13,20 +13,17 @@
     <!-- LOGIN -->
     <div class="login-container" id="loginScreen">
         <div class="login-box">
-            <h1>🏖️ Hostel Peruíbe</h1>
+            <h1>🏖️ Guest House Peruíbe</h1>
             <p>Painel Administrativo</p>
             <div class="login-error" id="loginError">Senha incorreta</div>
-            <form id="loginForm">
-                <input type="password" id="senha" placeholder="Digite a senha" required>
-                <button type="submit">Entrar</button>
-            </form>
+            <form id="loginForm"><input type="password" id="senha" placeholder="Digite a senha" required><button type="submit">Entrar</button></form>
         </div>
     </div>
     
     <!-- APP -->
     <div class="app" id="app">
         <header class="header">
-            <h1>🏖️ Hostel Casa Peruíbe</h1>
+            <h1>🏖️ Guest House Peruíbe</h1>
             <div class="header-actions">
                 <a href="/" class="header-btn" target="_blank">🌐 Ver Site</a>
                 <button class="header-btn" onclick="logout()">🚪 Sair</button>
@@ -43,41 +40,21 @@
             <!-- TAB RESERVAS -->
             <div class="tab-content active" id="tabReservas">
                 <div class="stats">
-                    <div class="stat-card warning">
-                        <h3 id="statPendentes">0</h3>
-                        <p>Pré-reservas pendentes</p>
-                    </div>
-                    <div class="stat-card success">
-                        <h3 id="statConfirmadas">0</h3>
-                        <p>Reservas confirmadas</p>
-                    </div>
-                    <div class="stat-card info">
-                        <h3 id="statQuartos">0/4</h3>
-                        <p>Quartos ocupados</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3 id="statValor">R$ 0</h3>
-                        <p>Valor total</p>
-                    </div>
+                    <div class="stat-card warning"><h3 id="statPendentes">0</h3><p>Pré-reservas pendentes</p></div>
+                    <div class="stat-card success"><h3 id="statConfirmadas">0</h3><p>Reservas confirmadas</p></div>
+                    <div class="stat-card info"><h3 id="statQuartos">0/4</h3><p>Quartos ocupados</p></div>
+                    <div class="stat-card"><h3 id="statValor">R$ 0</h3><p>Valor total</p></div>
                 </div>
-                
                 <h3 style="margin-bottom:20px;color:var(--warning)">⏳ Pré-reservas Pendentes</h3>
-                <div class="cards-grid" id="reservasPendentes">
-                    <div class="loading"><div class="spinner"></div></div>
-                </div>
-                
+                <div class="cards-grid" id="reservasPendentes"><div class="loading"><div class="spinner"></div></div></div>
                 <h3 style="margin:30px 0 20px;color:var(--success)">✅ Reservas Confirmadas</h3>
-                <div class="cards-grid" id="reservasConfirmadas">
-                    <div class="loading"><div class="spinner"></div></div>
-                </div>
+                <div class="cards-grid" id="reservasConfirmadas"><div class="loading"><div class="spinner"></div></div></div>
             </div>
             
             <!-- TAB QUARTOS -->
             <div class="tab-content" id="tabQuartos">
                 <h3 style="margin-bottom:20px">🛏️ Gerenciar Quartos</h3>
-                <div class="cards-grid" id="quartosGrid">
-                    <div class="loading"><div class="spinner"></div></div>
-                </div>
+                <div class="cards-grid" id="quartosGrid"><div class="loading"><div class="spinner"></div></div></div>
             </div>
             
             <!-- TAB CONFIG -->
@@ -85,117 +62,48 @@
                 <div class="form-section">
                     <h3>👤 Dados do Locador</h3>
                     <div class="form-grid">
-                        <div class="form-group">
-                            <label>Nome Completo</label>
-                            <input type="text" id="config_nome_locador" placeholder="Seu nome completo">
-                        </div>
-                        <div class="form-group">
-                            <label>CPF</label>
-                            <input type="text" id="config_cpf_locador" placeholder="000.000.000-00">
-                        </div>
-                        <div class="form-group">
-                            <label>Telefone/WhatsApp</label>
-                            <input type="text" id="config_telefone" placeholder="11999990000">
-                        </div>
-                        <div class="form-group">
-                            <label>E-mail</label>
-                            <input type="email" id="config_email" placeholder="seu@email.com">
-                        </div>
+                        <div class="form-group"><label>Nome Completo</label><input type="text" id="config_nome_locador" placeholder="Seu nome"></div>
+                        <div class="form-group"><label>CPF</label><input type="text" id="config_cpf_locador" placeholder="000.000.000-00"></div>
+                        <div class="form-group"><label>Telefone/WhatsApp</label><input type="text" id="config_telefone" placeholder="11999990000"></div>
+                        <div class="form-group"><label>E-mail</label><input type="email" id="config_email" placeholder="seu@email.com"></div>
                     </div>
                 </div>
-                
                 <div class="form-section">
                     <h3>💳 Dados do Pix</h3>
                     <div class="form-grid">
-                        <div class="form-group">
-                            <label>Tipo da Chave</label>
-                            <select id="config_pix_tipo">
-                                <option value="telefone">Telefone</option>
-                                <option value="cpf">CPF</option>
-                                <option value="email">E-mail</option>
-                                <option value="aleatoria">Chave Aleatória</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Chave Pix</label>
-                            <input type="text" id="config_pix_chave" placeholder="Sua chave pix">
-                        </div>
-                        <div class="form-group">
-                            <label>Nome que aparece no Pix</label>
-                            <input type="text" id="config_pix_nome" placeholder="Nome do titular">
-                        </div>
+                        <div class="form-group"><label>Tipo da Chave</label><select id="config_pix_tipo"><option value="telefone">Telefone</option><option value="cpf">CPF</option><option value="email">E-mail</option><option value="aleatoria">Chave Aleatória</option></select></div>
+                        <div class="form-group"><label>Chave Pix</label><input type="text" id="config_pix_chave" placeholder="Sua chave"></div>
+                        <div class="form-group"><label>Nome no Pix</label><input type="text" id="config_pix_nome" placeholder="Nome do titular"></div>
                     </div>
                 </div>
-                
                 <div class="form-section">
                     <h3>📍 Endereço</h3>
                     <div class="form-grid">
-                        <div class="form-group" style="grid-column: 1/-1">
-                            <label>Endereço Completo</label>
-                            <input type="text" id="config_endereco_completo" placeholder="Rua, número, bairro">
-                        </div>
-                        <div class="form-group">
-                            <label>Bairro</label>
-                            <input type="text" id="config_endereco_bairro" placeholder="Bairro">
-                        </div>
-                        <div class="form-group">
-                            <label>CEP</label>
-                            <input type="text" id="config_endereco_cep" placeholder="00000-000">
-                        </div>
-                        <div class="form-group" style="grid-column: 1/-1">
-                            <label>Link do Google Maps (embed)</label>
-                            <input type="text" id="config_endereco_maps" placeholder="https://www.google.com/maps/embed?...">
-                        </div>
+                        <div class="form-group" style="grid-column:1/-1"><label>Endereço Completo</label><input type="text" id="config_endereco_completo" placeholder="Rua, número"></div>
+                        <div class="form-group"><label>Bairro</label><input type="text" id="config_endereco_bairro"></div>
+                        <div class="form-group"><label>CEP</label><input type="text" id="config_endereco_cep"></div>
+                        <div class="form-group" style="grid-column:1/-1"><label>Link Google Maps (embed)</label><input type="text" id="config_endereco_maps" placeholder="https://www.google.com/maps/embed?..."></div>
                     </div>
                 </div>
-                
                 <div class="form-section">
                     <h3>📏 Distâncias</h3>
                     <div class="form-grid">
-                        <div class="form-group">
-                            <label>Distância da Praia</label>
-                            <input type="text" id="config_distancia_praia" placeholder="5 min a pé">
-                        </div>
-                        <div class="form-group">
-                            <label>Distância do Mercado</label>
-                            <input type="text" id="config_distancia_mercado" placeholder="3 min a pé">
-                        </div>
-                        <div class="form-group">
-                            <label>Distância do Centro</label>
-                            <input type="text" id="config_distancia_centro" placeholder="5 min de carro">
-                        </div>
-                        <div class="form-group">
-                            <label>Distância do McDonald's</label>
-                            <input type="text" id="config_distancia_mcdonalds" placeholder="5 min de carro">
-                        </div>
+                        <div class="form-group"><label>Praia</label><input type="text" id="config_distancia_praia" placeholder="5 min a pé"></div>
+                        <div class="form-group"><label>Mercado</label><input type="text" id="config_distancia_mercado" placeholder="3 min a pé"></div>
+                        <div class="form-group"><label>Centro</label><input type="text" id="config_distancia_centro" placeholder="5 min de carro"></div>
+                        <div class="form-group"><label>McDonald's</label><input type="text" id="config_distancia_mcdonalds" placeholder="5 min de carro"></div>
                     </div>
                 </div>
-                
                 <div class="form-section">
-                    <h3>⏰ Horários e Outros</h3>
+                    <h3>⏰ Outros</h3>
                     <div class="form-grid">
-                        <div class="form-group">
-                            <label>Horário Check-in</label>
-                            <input type="text" id="config_checkin_horario" placeholder="14:00">
-                        </div>
-                        <div class="form-group">
-                            <label>Horário Check-out</label>
-                            <input type="text" id="config_checkout_horario" placeholder="11:00">
-                        </div>
-                        <div class="form-group">
-                            <label>Instagram</label>
-                            <input type="text" id="config_instagram" placeholder="@hostelperuibe">
-                        </div>
-                        <div class="form-group">
-                            <label>Senha do Painel</label>
-                            <input type="text" id="config_senha_painel" placeholder="Nova senha">
-                        </div>
+                        <div class="form-group"><label>Check-in</label><input type="text" id="config_checkin_horario" placeholder="14:00"></div>
+                        <div class="form-group"><label>Check-out</label><input type="text" id="config_checkout_horario" placeholder="11:00"></div>
+                        <div class="form-group"><label>Instagram</label><input type="text" id="config_instagram" placeholder="@guest"></div>
+                        <div class="form-group"><label>Senha do Painel</label><input type="text" id="config_senha_painel" placeholder="Nova senha"></div>
                     </div>
                 </div>
-                
-                <button class="btn btn-primary" onclick="salvarConfig()" style="width:100%;padding:16px;font-size:16px;">
-                    💾 Salvar Configurações
-                </button>
+                <button class="btn btn-primary" onclick="salvarConfig()" style="width:100%;padding:16px;font-size:16px;">💾 Salvar Configurações</button>
             </div>
         </main>
     </div>
@@ -203,85 +111,43 @@
     <!-- MODAL CONTRATO -->
     <div class="modal-overlay" id="contratoModal">
         <div class="modal" style="max-width:800px">
-            <div class="modal-header">
-                <h2>📄 Contrato de Hospedagem</h2>
-                <button class="modal-close" onclick="closeModal('contratoModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="contract-preview" id="contratoPreview"></div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('contratoModal')">Fechar</button>
-                <button class="btn btn-primary" onclick="downloadContrato()">📥 Baixar PDF</button>
-            </div>
+            <div class="modal-header"><h2>📄 Contrato de Hospedagem</h2><button class="modal-close" onclick="closeModal('contratoModal')">&times;</button></div>
+            <div class="modal-body"><div class="contract-preview" id="contratoPreview"></div></div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('contratoModal')">Fechar</button><button class="btn btn-primary" onclick="downloadContrato()">📥 Baixar PDF</button></div>
         </div>
     </div>
     
     <!-- MODAL EDITAR QUARTO -->
     <div class="modal-overlay" id="quartoModal">
         <div class="modal">
-            <div class="modal-header">
-                <h2>✏️ Editar Quarto</h2>
-                <button class="modal-close" onclick="closeModal('quartoModal')">&times;</button>
-            </div>
+            <div class="modal-header"><h2>✏️ Editar Quarto</h2><button class="modal-close" onclick="closeModal('quartoModal')">&times;</button></div>
             <div class="modal-body">
                 <input type="hidden" id="editQuartoId">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Nome (Praia)</label>
-                        <input type="text" id="editNomePraia">
-                    </div>
-                    <div class="form-group">
-                        <label>Tipo</label>
-                        <input type="text" id="editTipo" placeholder="Quarto Grande, Suíte...">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Capacidade</label>
-                        <input type="number" id="editCapacidade">
-                    </div>
-                    <div class="form-group">
-                        <label>Preço (R$)</label>
-                        <input type="number" id="editPreco" step="0.01">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Camas</label>
-                    <input type="text" id="editCamas" placeholder="1 cama casal + 2 solteiro">
-                </div>
-                <div class="form-group">
-                    <label>Descrição</label>
-                    <textarea id="editDescricao" placeholder="Descrição do quarto..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Tag de Destaque</label>
-                    <input type="text" id="editDestaque" placeholder="Menor preço, Mais completo...">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <div class="checkbox-row">
-                            <input type="checkbox" id="editTemAr">
-                            <label for="editTemAr">Tem ar-condicionado</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="checkbox-row">
-                            <input type="checkbox" id="editTemTv">
-                            <label for="editTemTv">Tem TV</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>URL da Foto</label>
-                    <input type="text" id="editFotoUrl" placeholder="https://...">
-                    <small style="color:var(--text-muted)">Suba a foto no Storage do Supabase e cole a URL aqui</small>
-                </div>
+                <div class="form-row"><div class="form-group"><label>Nome (Praia)</label><input type="text" id="editNomePraia"></div><div class="form-group"><label>Tipo</label><input type="text" id="editTipo" placeholder="Quarto Grande..."></div></div>
+                <div class="form-row"><div class="form-group"><label>Capacidade</label><input type="number" id="editCapacidade"></div><div class="form-group"><label>Preço (R$)</label><input type="number" id="editPreco" step="0.01"></div></div>
+                <div class="form-group"><label>Camas</label><input type="text" id="editCamas" placeholder="1 casal + 2 solteiro"></div>
+                <div class="form-group"><label>Descrição</label><textarea id="editDescricao"></textarea></div>
+                <div class="form-group"><label>Tag de Destaque</label><input type="text" id="editDestaque" placeholder="Menor preço..."></div>
+                <div class="form-row"><div class="form-group"><div class="checkbox-row"><input type="checkbox" id="editTemAr"><label for="editTemAr">Ar-condicionado</label></div></div><div class="form-group"><div class="checkbox-row"><input type="checkbox" id="editTemTv"><label for="editTemTv">TV</label></div></div></div>
+                <div class="form-group"><label>URL da Foto</label><input type="text" id="editFotoUrl" placeholder="https://..."><small style="color:var(--text-muted)">Suba no Supabase Storage e cole a URL</small></div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('quartoModal')">Cancelar</button>
-                <button class="btn btn-primary" onclick="salvarQuarto()">💾 Salvar</button>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('quartoModal')">Cancelar</button><button class="btn btn-primary" onclick="salvarQuarto()">💾 Salvar</button></div>
+        </div>
+    </div>
+    
+    <!-- MODAL EDITAR RESERVA -->
+    <div class="modal-overlay" id="editReservaModal">
+        <div class="modal">
+            <div class="modal-header"><h2>✏️ Editar Reserva</h2><button class="modal-close" onclick="closeModal('editReservaModal')">&times;</button></div>
+            <div class="modal-body">
+                <input type="hidden" id="editReservaId">
+                <div class="form-row"><div class="form-group"><label>Nome</label><input type="text" id="editNomeResp"></div><div class="form-group"><label>WhatsApp</label><input type="text" id="editWhatsapp"></div></div>
+                <div class="form-row"><div class="form-group"><label>E-mail</label><input type="email" id="editEmail"></div><div class="form-group"><label>CPF</label><input type="text" id="editCpf"></div></div>
+                <div class="form-row"><div class="form-group"><label>Quarto</label><select id="editQuartoId"></select></div><div class="form-group"><label>Período</label><select id="editPeriodo"><option value="29-02">29/12 a 02/01</option><option value="30-03">30/12 a 03/01</option></select></div></div>
+                <div class="form-row"><div class="form-group"><label>Qtd Hóspedes</label><input type="number" id="editQtdHospedes" min="1" max="10"></div><div class="form-group"><label>Status</label><select id="editStatus"><option value="pre_reserva">Pré-reserva</option><option value="confirmada">Confirmada</option><option value="aguardando_sinal">Aguardando Sinal</option><option value="sinal_pago">Sinal Pago</option><option value="checkin">Check-in</option><option value="finalizada">Finalizada</option><option value="cancelada">Cancelada</option></select></div></div>
+                <div class="form-group"><label>Observações</label><textarea id="editObservacoes"></textarea></div>
             </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('editReservaModal')">Cancelar</button><button class="btn btn-primary" onclick="salvarReserva()">💾 Salvar</button></div>
         </div>
     </div>
     
