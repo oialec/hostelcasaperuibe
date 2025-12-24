@@ -78,19 +78,38 @@ function renderRoomCard(q) {
     
     const visualizando = (q.id * 3 + 2) % 5 + 3;
     
+    // Sempre mostrar os 2 pacotes de datas
     let periodoStatus = '';
     if (quartoReservado) {
-        periodoStatus = `<div class="room-status ocupado"><i data-lucide="x-circle"></i> Quarto já reservado para o Réveillon</div>`;
+        periodoStatus = `
+            <div class="room-periodos">
+                <div class="periodo-item ocupado">
+                    <i data-lucide="x-circle"></i>
+                    <span>29/12 → 02/01</span>
+                    <small>Reservado</small>
+                </div>
+                <div class="periodo-item ocupado">
+                    <i data-lucide="x-circle"></i>
+                    <span>30/12 → 03/01</span>
+                    <small>Reservado</small>
+                </div>
+            </div>
+        `;
     } else {
         periodoStatus = `
             <div class="room-periodos">
                 <div class="periodo-item disponivel">
                     <i data-lucide="check-circle"></i>
-                    <span>Réveillon 2025</span>
-                    <small>Disponível!</small>
+                    <span>29/12 → 02/01</span>
+                    <small>Disponível</small>
+                </div>
+                <div class="periodo-item disponivel">
+                    <i data-lucide="check-circle"></i>
+                    <span>30/12 → 03/01</span>
+                    <small>Disponível</small>
                 </div>
             </div>
-            <p class="periodo-info"><i data-lucide="info"></i> Escolha entre 29/12-02/01 ou 30/12-03/01</p>
+            <p class="periodo-info"><i data-lucide="info"></i> Escolha um dos pacotes ao reservar</p>
         `;
     }
     
